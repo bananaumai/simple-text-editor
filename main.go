@@ -33,10 +33,10 @@ func main() {
 			x = 0
 			y++
 		default:
-			//log.Println(ev.Ch)
 			termbox.SetCell(x, y, ev.Ch, coldef, coldef)
 			termbox.Flush()
 			x++
 		}
+		termbox.SetCursor(x+1, y)
 	}
 }
