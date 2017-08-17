@@ -32,14 +32,29 @@ func (ed *Editor) MoveLeft() {
 }
 
 func (ed *Editor) MoveRight() {
-	if len(ed.text[ed.y])-1 == ed.x {
+	if len(ed.text[ed.y]) == ed.x {
 		return
 	}
 	ed.x++
 }
 
 func (ed *Editor) AddRune(r rune) {
-	ed.text[ed.y] = append(ed.text[ed.y], r)
+	if len(ed.text[ed.y]) == ed.x {
+		ed.text[ed.y] = append(ed.text[ed.y], r)
+		ed.x++
+		return
+	}
+
+	newLine := make([]rune, len(ed.text[ed.y]) + 1)
+	head := ed.text[ed.y][:ed.x]
+	tail := ed.text[ed.y][ed.x:]
+
+	copy(newLine[:ed.x], head)
+	newLine[ed.x] = r
+	copy(newLine[(ed.x + 1):], tail)
+
+	ed.text[ed.y] = newLine
+
 	ed.x++
 }
 
