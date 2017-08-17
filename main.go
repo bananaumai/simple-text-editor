@@ -18,12 +18,6 @@ func NewEditor() *Editor {
 	}
 }
 
-func (ed *Editor) AddLine() {
-	ed.text = append(ed.text, []rune{})
-	ed.x = 0
-	ed.y++
-}
-
 func (ed *Editor) MoveLeft() {
 	if ed.x == 0 {
 		return
@@ -60,6 +54,27 @@ func (ed *Editor) MoveDown() {
 	}
 }
 
+func (ed *Editor) AddLine() {
+	if len(ed.text) - 1 == ed.y {
+		ed.text = append(ed.text, []rune{})
+		ed.x = 0
+		ed.y++
+		return
+	}
+
+	newText := make([][]rune, len(ed.text) + 1)
+	head := ed.text[:(ed.y + 1)]
+	tail := ed.text[(ed.y + 1):]
+
+	copy(newText[:(ed.y + 1)], head)
+	newText[(ed.y + 1)] = []rune{}
+	copy(newText[(ed.y + 2):], tail)
+
+	ed.text = newText
+
+	ed.MoveDown()
+}
+
 func (ed *Editor) AddRune(r rune) {
 	if len(ed.text[ed.y]) == ed.x {
 		ed.text[ed.y] = append(ed.text[ed.y], r)
@@ -77,17 +92,22 @@ func (ed *Editor) AddRune(r rune) {
 
 	ed.text[ed.y] = newLine
 
-	ed.x++
+	ed.MoveRight()
 }
 
 func (ed *Editor) Draw() {
 	const color = termbox.ColorDefault
+
+	termbox.Clear(color, color)
+
 	for i, l := range ed.text {
 		for j, r := range l {
 			termbox.SetCell(j, i, r, color, color)
 		}
 	}
+
 	termbox.SetCursor(ed.x, ed.y)
+
 	termbox.Flush()
 }
 
