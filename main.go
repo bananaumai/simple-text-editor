@@ -38,6 +38,28 @@ func (ed *Editor) MoveRight() {
 	ed.x++
 }
 
+func (ed *Editor) MoveUp() {
+	if ed.y == 0 {
+		return
+	}
+
+	ed.y--
+	if len(ed.text[ed.y]) - 1 < ed.x {
+		ed.x = len(ed.text[ed.y])
+	}
+}
+
+func (ed *Editor) MoveDown() {
+	if len(ed.text) - 1 == ed.y {
+		return
+	}
+
+	ed.y++
+	if len(ed.text[ed.y]) - 1 < ed.x {
+		ed.x = len(ed.text[ed.y])
+	}
+}
+
 func (ed *Editor) AddRune(r rune) {
 	if len(ed.text[ed.y]) == ed.x {
 		ed.text[ed.y] = append(ed.text[ed.y], r)
@@ -98,6 +120,10 @@ func main() {
 			ed.MoveLeft()
 		case termbox.KeyArrowRight:
 			ed.MoveRight()
+		case termbox.KeyArrowUp:
+			ed.MoveUp()
+		case termbox.KeyArrowDown:
+			ed.MoveDown()
 		default:
 			ed.AddRune(ev.Ch)
 		}
