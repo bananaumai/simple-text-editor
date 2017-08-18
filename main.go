@@ -6,8 +6,8 @@ import (
 
 type Editor struct {
 	text [][]rune
-	x int
-	y int
+	x    int
+	y    int
 }
 
 func NewEditor() *Editor {
@@ -38,37 +38,37 @@ func (ed *Editor) MoveUp() {
 	}
 
 	ed.y--
-	if len(ed.text[ed.y]) - 1 < ed.x {
+	if len(ed.text[ed.y])-1 < ed.x {
 		ed.x = len(ed.text[ed.y])
 	}
 }
 
 func (ed *Editor) MoveDown() {
-	if len(ed.text) - 1 == ed.y {
+	if len(ed.text)-1 == ed.y {
 		return
 	}
 
 	ed.y++
-	if len(ed.text[ed.y]) - 1 < ed.x {
+	if len(ed.text[ed.y])-1 < ed.x {
 		ed.x = len(ed.text[ed.y])
 	}
 }
 
 func (ed *Editor) AddLine() {
-	if len(ed.text) - 1 == ed.y {
+	if len(ed.text)-1 == ed.y {
 		ed.text = append(ed.text, []rune{})
 		ed.x = 0
 		ed.y++
 		return
 	}
 
-	newText := make([][]rune, len(ed.text) + 1)
+	newText := make([][]rune, len(ed.text)+1)
 	head := ed.text[:(ed.y + 1)]
 	tail := ed.text[(ed.y + 1):]
 
-	copy(newText[:(ed.y + 1)], head)
+	copy(newText[:(ed.y+1)], head)
 	newText[(ed.y + 1)] = []rune{}
-	copy(newText[(ed.y + 2):], tail)
+	copy(newText[(ed.y+2):], tail)
 
 	ed.text = newText
 
@@ -82,13 +82,13 @@ func (ed *Editor) AddRune(r rune) {
 		return
 	}
 
-	newLine := make([]rune, len(ed.text[ed.y]) + 1)
+	newLine := make([]rune, len(ed.text[ed.y])+1)
 	head := ed.text[ed.y][:ed.x]
 	tail := ed.text[ed.y][ed.x:]
 
 	copy(newLine[:ed.x], head)
 	newLine[ed.x] = r
-	copy(newLine[(ed.x + 1):], tail)
+	copy(newLine[(ed.x+1):], tail)
 
 	ed.text[ed.y] = newLine
 
@@ -123,7 +123,7 @@ func main() {
 
 	ed := NewEditor()
 
-	mainloop:
+mainloop:
 	for {
 		ev := termbox.PollEvent()
 
