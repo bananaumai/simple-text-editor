@@ -63,16 +63,33 @@ func (ed *Editor) AddLine() {
 	}
 
 	newText := make([][]rune, len(ed.text)+1)
-	head := ed.text[:(ed.y + 1)]
-	tail := ed.text[(ed.y + 1):]
+	head := ed.text[:ed.y+1]
+	tail := ed.text[ed.y+1:]
 
-	copy(newText[:(ed.y+1)], head)
-	newText[(ed.y + 1)] = []rune{}
-	copy(newText[(ed.y+2):], tail)
+	copy(newText[:ed.y+1], head)
+	newText[ed.y+1] = []rune{}
+	copy(newText[ed.y+2:], tail)
 
 	ed.text = newText
 
 	ed.MoveDown()
+}
+
+func (ed *Editor) RemoveLine() {
+	if ed.y == 0 {
+		return
+	}
+
+	newText := make([][]rune, len(ed.text)-1)
+	head := ed.text[:ed.y]
+	tail := ed.text[ed.y+1:]
+
+	copy(newText[:ed.y], head)
+	copy(newText[ed.y:], tail)
+
+	ed.text = newText
+
+	ed.y--
 }
 
 func (ed *Editor) AddRune(r rune) {
@@ -88,7 +105,7 @@ func (ed *Editor) AddRune(r rune) {
 
 	copy(newLine[:ed.x], head)
 	newLine[ed.x] = r
-	copy(newLine[(ed.x+1):], tail)
+	copy(newLine[ed.x+1:], tail)
 
 	ed.text[ed.y] = newLine
 
@@ -96,15 +113,33 @@ func (ed *Editor) AddRune(r rune) {
 }
 
 func (ed *Editor) RemoveBackwardRune() {
-	xBeforeMove := ed.x
-	ed.MoveLeft()
-	if xBeforeMove == ed.x {
+	if ed.x == 0 && ed.y == 0 {
 		return
 	}
 
+	if ed.x == 0 {
+		currentLine := ed.text[ed.y]
+		currentLineLen := len(currentLine)
+
+		prevLine := ed.text[ed.y-1]
+		prevLineLen := len(prevLine)
+
+		newLine := make([]rune, prevLineLen+currentLineLen)
+		copy(newLine[:prevLineLen], prevLine)
+		copy(newLine[prevLineLen:], currentLine)
+		ed.text[ed.y-1] = newLine
+
+		ed.x = prevLineLen
+		ed.RemoveLine()
+
+		return
+	}
+
+	ed.MoveLeft()
+
 	newLine := make([]rune, len(ed.text[ed.y])-1)
-	head := ed.text[ed.y][:(ed.x + 1)]
-	tail := ed.text[ed.y][(ed.x + 1):]
+	head := ed.text[ed.y][:ed.x+1]
+	tail := ed.text[ed.y][ed.x+1:]
 
 	copy(newLine[:ed.x], head)
 	copy(newLine[ed.x:], tail)
