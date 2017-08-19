@@ -64,8 +64,11 @@ func (ed *Editor) GoToLineEnd() {
 
 func (ed *Editor) AddLine() {
 	currentLine := ed.text[ed.y]
-	remainingLine := currentLine[:ed.x]
-	newLine := currentLine[ed.x:]
+
+	remainingLine := make([]rune, len(currentLine[:ed.x]))
+	copy(remainingLine, currentLine[:ed.x])
+	newLine := make([]rune, len(currentLine[ed.x:]))
+	copy(newLine, currentLine[ed.x:])
 
 	ed.text[ed.y] = remainingLine
 
@@ -79,21 +82,6 @@ func (ed *Editor) AddLine() {
 
 	ed.x = 0
 	ed.y++
-}
-
-func (ed *Editor) removeLine(lineOffset int) {
-	if ed.y == 0 {
-		return
-	}
-
-	newText := make([][]rune, len(ed.text)-1)
-	head := ed.text[:lineOffset]
-	tail := ed.text[lineOffset+1:]
-
-	copy(newText[:lineOffset], head)
-	copy(newText[lineOffset:], tail)
-
-	ed.text = newText
 }
 
 func (ed *Editor) AddRune(r rune) {
@@ -199,6 +187,21 @@ func (ed *Editor) Draw() {
 	termbox.SetCursor(ed.x, ed.y)
 
 	termbox.Flush()
+}
+
+func (ed *Editor) removeLine(lineOffset int) {
+	if ed.y == 0 {
+		return
+	}
+
+	newText := make([][]rune, len(ed.text)-1)
+	head := ed.text[:lineOffset]
+	tail := ed.text[lineOffset+1:]
+
+	copy(newText[:lineOffset], head)
+	copy(newText[lineOffset:], tail)
+
+	ed.text = newText
 }
 
 func main() {
