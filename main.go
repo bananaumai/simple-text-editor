@@ -73,21 +73,19 @@ func (ed *Editor) AddLine() {
 	ed.y++
 }
 
-func (ed *Editor) RemoveLine() {
+func (ed *Editor) removeLine(lineOffset int) {
 	if ed.y == 0 {
 		return
 	}
 
 	newText := make([][]rune, len(ed.text)-1)
-	head := ed.text[:ed.y]
-	tail := ed.text[ed.y+1:]
+	head := ed.text[:lineOffset]
+	tail := ed.text[lineOffset+1:]
 
-	copy(newText[:ed.y], head)
-	copy(newText[ed.y:], tail)
+	copy(newText[:lineOffset], head)
+	copy(newText[lineOffset:], tail)
 
 	ed.text = newText
-
-	ed.y--
 }
 
 func (ed *Editor) AddRune(r rune) {
@@ -128,7 +126,8 @@ func (ed *Editor) RemoveBackwardRune() {
 		ed.text[ed.y-1] = newLine
 
 		ed.x = prevLineLen
-		ed.RemoveLine()
+		ed.removeLine(ed.y)
+		ed.y--
 
 		return
 	}
@@ -146,7 +145,25 @@ func (ed *Editor) RemoveBackwardRune() {
 }
 
 func (ed *Editor) RemoveForwardRune() {
+	if ed.x == len(ed.text[ed.y]) && ed.y == len(ed.text)-1 {
+		return
+	}
+
 	if ed.x == len(ed.text[ed.y]) {
+		currentLine := ed.text[ed.y]
+		currentLineLen := len(currentLine)
+
+		nextLine := ed.text[ed.y+1]
+		nextLineLen := len(nextLine)
+
+		newLine := make([]rune, nextLineLen+currentLineLen)
+		copy(newLine[:currentLineLen], currentLine)
+		copy(newLine[currentLineLen:], nextLine)
+		ed.text[ed.y] = newLine
+
+		ed.x = currentLineLen
+		ed.removeLine(ed.y + 1)
+
 		return
 	}
 
