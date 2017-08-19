@@ -95,6 +95,23 @@ func (ed *Editor) AddRune(r rune) {
 	ed.MoveRight()
 }
 
+func (ed *Editor) RemoveBackwardRune() {
+	xBeforeMove := ed.x
+	ed.MoveLeft()
+	if xBeforeMove == ed.x {
+		return
+	}
+
+	newLine := make([]rune, len(ed.text[ed.y])-1)
+	head := ed.text[ed.y][:(ed.x + 1)]
+	tail := ed.text[ed.y][(ed.x + 1):]
+
+	copy(newLine[:ed.x], head)
+	copy(newLine[ed.x:], tail)
+
+	ed.text[ed.y] = newLine
+}
+
 func (ed *Editor) Draw() {
 	const color = termbox.ColorDefault
 
@@ -144,6 +161,8 @@ mainloop:
 			ed.MoveUp()
 		case termbox.KeyArrowDown:
 			ed.MoveDown()
+		case termbox.KeyBackspace, termbox.KeyBackspace2:
+			ed.RemoveBackwardRune()
 		default:
 			if ev.Ch != 0 {
 				ed.AddRune(ev.Ch)
