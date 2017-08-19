@@ -242,6 +242,10 @@ mainloop:
 			ed.RemoveBackwardRune()
 		case termbox.KeyDelete, termbox.KeyCtrlD:
 			ed.RemoveForwardRune()
+		case termbox.KeySpace:
+			ed.AddRune(' ')
+		case termbox.KeyTab:
+			ed.AddRune('\t')
 		default:
 			if ev.Ch != 0 {
 				ed.AddRune(ev.Ch)
