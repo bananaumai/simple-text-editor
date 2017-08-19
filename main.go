@@ -145,7 +145,9 @@ mainloop:
 		case termbox.KeyArrowDown:
 			ed.MoveDown()
 		default:
-			ed.AddRune(ev.Ch)
+			if ev.Ch != 0 {
+				ed.AddRune(ev.Ch)
+			}
 		}
 		ed.Draw()
 	}
