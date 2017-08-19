@@ -54,6 +54,14 @@ func (ed *Editor) MoveDown() {
 	}
 }
 
+func (ed *Editor) GoToLineStart() {
+	ed.x = 0
+}
+
+func (ed *Editor) GoToLineEnd() {
+	ed.x = len(ed.text[ed.y])
+}
+
 func (ed *Editor) AddLine() {
 	currentLine := ed.text[ed.y]
 	remainingLine := currentLine[:ed.x]
@@ -218,14 +226,18 @@ mainloop:
 			break mainloop
 		case termbox.KeyEnter:
 			ed.AddLine()
-		case termbox.KeyArrowLeft:
+		case termbox.KeyArrowLeft, termbox.KeyCtrlB:
 			ed.MoveLeft()
-		case termbox.KeyArrowRight:
+		case termbox.KeyArrowRight, termbox.KeyCtrlF:
 			ed.MoveRight()
-		case termbox.KeyArrowUp:
+		case termbox.KeyArrowUp, termbox.KeyCtrlP:
 			ed.MoveUp()
-		case termbox.KeyArrowDown:
+		case termbox.KeyArrowDown, termbox.KeyCtrlN:
 			ed.MoveDown()
+		case termbox.KeyCtrlA:
+			ed.GoToLineStart()
+		case termbox.KeyCtrlE:
+			ed.GoToLineEnd()
 		case termbox.KeyBackspace, termbox.KeyBackspace2:
 			ed.RemoveBackwardRune()
 		case termbox.KeyDelete, termbox.KeyCtrlD:
