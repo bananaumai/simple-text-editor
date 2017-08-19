@@ -55,24 +55,22 @@ func (ed *Editor) MoveDown() {
 }
 
 func (ed *Editor) AddLine() {
-	if len(ed.text)-1 == ed.y {
-		ed.text = append(ed.text, []rune{})
-		ed.x = 0
-		ed.y++
-		return
-	}
+	currentLine := ed.text[ed.y]
+	remainingLine := currentLine[:ed.x]
+	newLine := currentLine[ed.x:]
+
+	ed.text[ed.y] = remainingLine
 
 	newText := make([][]rune, len(ed.text)+1)
-	head := ed.text[:ed.y+1]
-	tail := ed.text[ed.y+1:]
-
-	copy(newText[:ed.y+1], head)
-	newText[ed.y+1] = []rune{}
-	copy(newText[ed.y+2:], tail)
-
+	headLines := ed.text[:ed.y+1]
+	tailLines := ed.text[ed.y+1:]
+	copy(newText[:ed.y+1], headLines)
+	newText[ed.y+1] = newLine
+	copy(newText[ed.y+2:], tailLines)
 	ed.text = newText
 
-	ed.MoveDown()
+	ed.x = 0
+	ed.y++
 }
 
 func (ed *Editor) RemoveLine() {
