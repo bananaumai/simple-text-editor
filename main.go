@@ -190,9 +190,6 @@ func (ed *Editor) Draw() {
 }
 
 func (ed *Editor) removeLine(lineOffset int) {
-	if ed.y == 0 {
-		return
-	}
 
 	newText := make([][]rune, len(ed.text)-1)
 	head := ed.text[:lineOffset]
