@@ -1,3 +1,5 @@
 package: github.com/bananaumai/simple-text-editor
 import:
 - package: github.com/nsf/termbox-go
+- package: github.com/mattn/go-runewidth
+  version: ~0.0.2

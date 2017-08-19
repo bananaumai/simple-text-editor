@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 )
 
@@ -85,6 +86,7 @@ func (ed *Editor) AddLine() {
 }
 
 func (ed *Editor) AddRune(r rune) {
+
 	if len(ed.text[ed.y]) == ed.x {
 		ed.text[ed.y] = append(ed.text[ed.y], r)
 		ed.x++
@@ -178,13 +180,20 @@ func (ed *Editor) Draw() {
 
 	termbox.Clear(color, color)
 
-	for i, l := range ed.text {
-		for j, r := range l {
-			termbox.SetCell(j, i, r, color, color)
+	cursorPosX := 0
+	for y, line := range ed.text {
+		posX := 0
+		for x, r := range line {
+			termbox.SetCell(posX, y, r, color, color)
+			width := runewidth.RuneWidth(r)
+			posX += width
+			if ed.y == y && ed.x > x {
+				cursorPosX += width
+			}
 		}
 	}
 
-	termbox.SetCursor(ed.x, ed.y)
+	termbox.SetCursor(cursorPosX, ed.y)
 
 	termbox.Flush()
 }

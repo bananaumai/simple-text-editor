@@ -6,7 +6,7 @@ Written in GoLang
 
 ### system behavior
 
-- [ ] To improve multibyte characters
+- [x] To improve multibyte characters
 - [ ] To improve display text when the cursor position is over the display size.
 - [ ] To show line & column number.
 - [ ] To save the text to the file.
