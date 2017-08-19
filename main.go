@@ -133,10 +133,25 @@ func (ed *Editor) RemoveBackwardRune() {
 		return
 	}
 
-	ed.MoveLeft()
+	ed.x--
 
 	newLine := make([]rune, len(ed.text[ed.y])-1)
 	head := ed.text[ed.y][:ed.x+1]
+	tail := ed.text[ed.y][ed.x+1:]
+
+	copy(newLine[:ed.x], head)
+	copy(newLine[ed.x:], tail)
+
+	ed.text[ed.y] = newLine
+}
+
+func (ed *Editor) RemoveForwardRune() {
+	if ed.x == len(ed.text[ed.y]) {
+		return
+	}
+
+	newLine := make([]rune, len(ed.text[ed.y])-1)
+	head := ed.text[ed.y][:ed.x]
 	tail := ed.text[ed.y][ed.x+1:]
 
 	copy(newLine[:ed.x], head)
@@ -196,6 +211,8 @@ mainloop:
 			ed.MoveDown()
 		case termbox.KeyBackspace, termbox.KeyBackspace2:
 			ed.RemoveBackwardRune()
+		case termbox.KeyDelete, termbox.KeyCtrlD:
+			ed.RemoveForwardRune()
 		default:
 			if ev.Ch != 0 {
 				ed.AddRune(ev.Ch)
