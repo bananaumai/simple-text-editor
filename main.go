@@ -6,9 +6,9 @@ import (
 )
 
 type Editor struct {
-	text [][]rune
-	x    int
-	y    int
+	Text [][]rune
+	X    int
+	Y    int
 }
 
 func NewEditor() *Editor {
@@ -20,194 +20,208 @@ func NewEditor() *Editor {
 }
 
 func (ed *Editor) MoveLeft() {
-	if ed.x == 0 {
+	if ed.X == 0 {
 		return
 	}
-	ed.x--
+	ed.X--
 }
 
 func (ed *Editor) MoveRight() {
-	if len(ed.text[ed.y]) == ed.x {
+	if len(ed.Text[ed.Y]) == ed.X {
 		return
 	}
-	ed.x++
+	ed.X++
 }
 
 func (ed *Editor) MoveUp() {
-	if ed.y == 0 {
+	if ed.Y == 0 {
 		return
 	}
 
-	ed.y--
-	if len(ed.text[ed.y])-1 < ed.x {
-		ed.x = len(ed.text[ed.y])
+	ed.Y--
+	if len(ed.Text[ed.Y])-1 < ed.X {
+		ed.X = len(ed.Text[ed.Y])
 	}
 }
 
 func (ed *Editor) MoveDown() {
-	if len(ed.text)-1 == ed.y {
+	if len(ed.Text)-1 == ed.Y {
 		return
 	}
 
-	ed.y++
-	if len(ed.text[ed.y])-1 < ed.x {
-		ed.x = len(ed.text[ed.y])
+	ed.Y++
+	if len(ed.Text[ed.Y])-1 < ed.X {
+		ed.X = len(ed.Text[ed.Y])
 	}
 }
 
 func (ed *Editor) GoToLineStart() {
-	ed.x = 0
+	ed.X = 0
 }
 
 func (ed *Editor) GoToLineEnd() {
-	ed.x = len(ed.text[ed.y])
+	ed.X = len(ed.Text[ed.Y])
 }
 
 func (ed *Editor) AddLine() {
-	currentLine := ed.text[ed.y]
+	currentLine := ed.Text[ed.Y]
 
-	remainingLine := make([]rune, len(currentLine[:ed.x]))
-	copy(remainingLine, currentLine[:ed.x])
-	newLine := make([]rune, len(currentLine[ed.x:]))
-	copy(newLine, currentLine[ed.x:])
+	remainingLine := make([]rune, len(currentLine[:ed.X]))
+	copy(remainingLine, currentLine[:ed.X])
+	newLine := make([]rune, len(currentLine[ed.X:]))
+	copy(newLine, currentLine[ed.X:])
 
-	ed.text[ed.y] = remainingLine
+	ed.Text[ed.Y] = remainingLine
 
-	newText := make([][]rune, len(ed.text)+1)
-	headLines := ed.text[:ed.y+1]
-	tailLines := ed.text[ed.y+1:]
-	copy(newText[:ed.y+1], headLines)
-	newText[ed.y+1] = newLine
-	copy(newText[ed.y+2:], tailLines)
-	ed.text = newText
+	newText := make([][]rune, len(ed.Text)+1)
+	headLines := ed.Text[:ed.Y+1]
+	tailLines := ed.Text[ed.Y+1:]
+	copy(newText[:ed.Y+1], headLines)
+	newText[ed.Y+1] = newLine
+	copy(newText[ed.Y+2:], tailLines)
+	ed.Text = newText
 
-	ed.x = 0
-	ed.y++
+	ed.X = 0
+	ed.Y++
 }
 
 func (ed *Editor) AddRune(r rune) {
 
-	if len(ed.text[ed.y]) == ed.x {
-		ed.text[ed.y] = append(ed.text[ed.y], r)
-		ed.x++
+	if len(ed.Text[ed.Y]) == ed.X {
+		ed.Text[ed.Y] = append(ed.Text[ed.Y], r)
+		ed.X++
 		return
 	}
 
-	newLine := make([]rune, len(ed.text[ed.y])+1)
-	head := ed.text[ed.y][:ed.x]
-	tail := ed.text[ed.y][ed.x:]
+	newLine := make([]rune, len(ed.Text[ed.Y])+1)
+	head := ed.Text[ed.Y][:ed.X]
+	tail := ed.Text[ed.Y][ed.X:]
 
-	copy(newLine[:ed.x], head)
-	newLine[ed.x] = r
-	copy(newLine[ed.x+1:], tail)
+	copy(newLine[:ed.X], head)
+	newLine[ed.X] = r
+	copy(newLine[ed.X+1:], tail)
 
-	ed.text[ed.y] = newLine
+	ed.Text[ed.Y] = newLine
 
 	ed.MoveRight()
 }
 
 func (ed *Editor) RemoveBackwardRune() {
-	if ed.x == 0 && ed.y == 0 {
+	if ed.X == 0 && ed.Y == 0 {
 		return
 	}
 
-	if ed.x == 0 {
-		currentLine := ed.text[ed.y]
+	if ed.X == 0 {
+		currentLine := ed.Text[ed.Y]
 		currentLineLen := len(currentLine)
 
-		prevLine := ed.text[ed.y-1]
+		prevLine := ed.Text[ed.Y-1]
 		prevLineLen := len(prevLine)
 
 		newLine := make([]rune, prevLineLen+currentLineLen)
 		copy(newLine[:prevLineLen], prevLine)
 		copy(newLine[prevLineLen:], currentLine)
-		ed.text[ed.y-1] = newLine
+		ed.Text[ed.Y-1] = newLine
 
-		ed.x = prevLineLen
-		ed.removeLine(ed.y)
-		ed.y--
+		ed.X = prevLineLen
+		ed.removeLine(ed.Y)
+		ed.Y--
 
 		return
 	}
 
-	ed.x--
+	ed.X--
 
-	newLine := make([]rune, len(ed.text[ed.y])-1)
-	head := ed.text[ed.y][:ed.x+1]
-	tail := ed.text[ed.y][ed.x+1:]
+	newLine := make([]rune, len(ed.Text[ed.Y])-1)
+	head := ed.Text[ed.Y][:ed.X+1]
+	tail := ed.Text[ed.Y][ed.X+1:]
 
-	copy(newLine[:ed.x], head)
-	copy(newLine[ed.x:], tail)
+	copy(newLine[:ed.X], head)
+	copy(newLine[ed.X:], tail)
 
-	ed.text[ed.y] = newLine
+	ed.Text[ed.Y] = newLine
 }
 
 func (ed *Editor) RemoveForwardRune() {
-	if ed.x == len(ed.text[ed.y]) && ed.y == len(ed.text)-1 {
+	if ed.X == len(ed.Text[ed.Y]) && ed.Y == len(ed.Text)-1 {
 		return
 	}
 
-	if ed.x == len(ed.text[ed.y]) {
-		currentLine := ed.text[ed.y]
+	if ed.X == len(ed.Text[ed.Y]) {
+		currentLine := ed.Text[ed.Y]
 		currentLineLen := len(currentLine)
 
-		nextLine := ed.text[ed.y+1]
+		nextLine := ed.Text[ed.Y+1]
 		nextLineLen := len(nextLine)
 
 		newLine := make([]rune, nextLineLen+currentLineLen)
 		copy(newLine[:currentLineLen], currentLine)
 		copy(newLine[currentLineLen:], nextLine)
-		ed.text[ed.y] = newLine
+		ed.Text[ed.Y] = newLine
 
-		ed.x = currentLineLen
-		ed.removeLine(ed.y + 1)
+		ed.X = currentLineLen
+		ed.removeLine(ed.Y + 1)
 
 		return
 	}
 
-	newLine := make([]rune, len(ed.text[ed.y])-1)
-	head := ed.text[ed.y][:ed.x]
-	tail := ed.text[ed.y][ed.x+1:]
+	newLine := make([]rune, len(ed.Text[ed.Y])-1)
+	head := ed.Text[ed.Y][:ed.X]
+	tail := ed.Text[ed.Y][ed.X+1:]
 
-	copy(newLine[:ed.x], head)
-	copy(newLine[ed.x:], tail)
+	copy(newLine[:ed.X], head)
+	copy(newLine[ed.X:], tail)
 
-	ed.text[ed.y] = newLine
+	ed.Text[ed.Y] = newLine
 }
 
-func (ed *Editor) Draw() {
+func (ed *Editor) removeLine(lineOffset int) {
+
+	newText := make([][]rune, len(ed.Text)-1)
+	head := ed.Text[:lineOffset]
+	tail := ed.Text[lineOffset+1:]
+
+	copy(newText[:lineOffset], head)
+	copy(newText[lineOffset:], tail)
+
+	ed.Text = newText
+}
+
+type Screen struct {
+	ed      *Editor
+	offsetX int
+	offsetY int
+}
+
+func NewScreen(ed *Editor) *Screen {
+	return &Screen{
+		ed:      ed,
+		offsetX: 0,
+		offsetY: 0,
+	}
+}
+
+func (sc *Screen) Draw() {
 	const color = termbox.ColorDefault
 
 	termbox.Clear(color, color)
 
 	cursorPosX := 0
-	for y, line := range ed.text {
+	for y, line := range sc.ed.Text {
 		posX := 0
 		for x, r := range line {
 			termbox.SetCell(posX, y, r, color, color)
 			width := runewidth.RuneWidth(r)
 			posX += width
-			if ed.y == y && ed.x > x {
+			if sc.ed.Y == y && sc.ed.X > x {
 				cursorPosX += width
 			}
 		}
 	}
 
-	termbox.SetCursor(cursorPosX, ed.y)
+	termbox.SetCursor(cursorPosX, sc.ed.Y)
 
 	termbox.Flush()
-}
-
-func (ed *Editor) removeLine(lineOffset int) {
-
-	newText := make([][]rune, len(ed.text)-1)
-	head := ed.text[:lineOffset]
-	tail := ed.text[lineOffset+1:]
-
-	copy(newText[:lineOffset], head)
-	copy(newText[lineOffset:], tail)
-
-	ed.text = newText
 }
 
 func main() {
@@ -221,6 +235,7 @@ func main() {
 	termbox.Clear(color, color)
 
 	ed := NewEditor()
+	sc := NewScreen(ed)
 
 mainloop:
 	for {
@@ -260,6 +275,6 @@ mainloop:
 				ed.AddRune(ev.Ch)
 			}
 		}
-		ed.Draw()
+		sc.Draw()
 	}
 }
