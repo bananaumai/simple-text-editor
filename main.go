@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 )
@@ -190,20 +188,18 @@ func (ed *Editor) removeLine(lineOffset int) {
 }
 
 type Screen struct {
-	ed      *Editor
-	cursorX int
-	cursorY int
-	offsetX int
-	offsetY int
+	ed          *Editor
+	prevEditorX int
+	prevEditorY int
+	offsetX     int
+	offsetY     int
+	cursorX     int
+	cursorY     int
 }
 
 func NewScreen(ed *Editor) *Screen {
 	return &Screen{
-		ed:      ed,
-		cursorX: 0,
-		cursorY: 0,
-		offsetX: 0,
-		offsetY: 0,
+		ed: ed,
 	}
 }
 
@@ -213,52 +209,63 @@ func (sc *Screen) Draw() {
 	termbox.Clear(color, color)
 
 	windowWidth, windowHeight := termbox.Size()
+
 	sc.updateOffsetX(windowWidth)
 	sc.updateOffsetY(windowHeight)
-	log.Println(sc.ed.Y)
 
-	cursorPosX := 0
-	posY := 0
-	for y := sc.offsetY; y < windowHeight && y < len(sc.ed.Text); y++ {
-		posX := 0
-		for x := sc.offsetX; x < windowWidth && x < len(sc.ed.Text[y]); x++ {
-			r := sc.ed.Text[y][x]
-			termbox.SetCell(posX, posY, r, color, color)
-			width := runewidth.RuneWidth(r)
-			posX += width
-			if sc.ed.Y == y && sc.ed.X > x {
-				cursorPosX += width
-			}
-		}
-		posY++
+	sc.cursorX = 0
+	sc.cursorY = sc.ed.Y - sc.offsetY
+
+	text := sc.ed.Text[sc.offsetY:]
+	if len(text) > windowHeight {
+		text = text[:windowHeight]
 	}
 
-	//for y, line := range sc.ed.Text {
-	//	posX := 0
-	//	for x, r := range line {
-	//		termbox.SetCell(posX, y, r, color, color)
-	//		width := runewidth.RuneWidth(r)
-	//		posX += width
-	//		if sc.ed.Y == y && sc.ed.X > x {
-	//			cursorPosX += width
-	//		}
-	//	}
-	//}
+	for y, line := range text {
 
-	termbox.SetCursor(cursorPosX, sc.ed.Y)
+		if len(line) <= sc.offsetX {
+			break
+		}
+		line = line[sc.offsetX:]
+		if len(line) > windowWidth {
+			line = line[:windowWidth]
+		}
+
+		x := 0
+		for _, r := range line {
+			termbox.SetCell(x, y, r, color, color)
+			width := runewidth.RuneWidth(r)
+			x += width
+			if sc.cursorY == y {
+				sc.cursorX += width
+			}
+		}
+	}
+
+	sc.prevEditorX = sc.ed.X
+	sc.prevEditorY = sc.ed.Y
+
+	termbox.SetCursor(sc.cursorX, sc.cursorY)
 
 	termbox.Flush()
 }
 
 func (sc *Screen) updateOffsetX(width int) {
-	if sc.ed.X > width {
-		sc.offsetX = sc.ed.X - width
+	if sc.offsetX <= sc.ed.X && sc.ed.X <= width {
+		return
 	}
+	sc.offsetX = sc.ed.X - width
 }
 
 func (sc *Screen) updateOffsetY(height int) {
-	if sc.ed.Y > height {
-		sc.offsetY = sc.ed.Y - height
+	if sc.offsetY <= sc.ed.Y && sc.ed.Y < height {
+		return
+	}
+	if sc.ed.Y > sc.prevEditorY && sc.ed.Y >= height {
+		sc.offsetY = sc.ed.Y + 1 - height
+	}
+	if sc.ed.Y < sc.prevEditorY && sc.ed.Y < sc.offsetY {
+		sc.offsetY--
 	}
 }
 
