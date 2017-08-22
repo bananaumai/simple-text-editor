@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 )
@@ -189,6 +191,8 @@ func (ed *Editor) removeLine(lineOffset int) {
 
 type Screen struct {
 	ed      *Editor
+	cursorX int
+	cursorY int
 	offsetX int
 	offsetY int
 }
@@ -196,6 +200,8 @@ type Screen struct {
 func NewScreen(ed *Editor) *Screen {
 	return &Screen{
 		ed:      ed,
+		cursorX: 0,
+		cursorY: 0,
 		offsetX: 0,
 		offsetY: 0,
 	}
@@ -206,22 +212,54 @@ func (sc *Screen) Draw() {
 
 	termbox.Clear(color, color)
 
+	windowWidth, windowHeight := termbox.Size()
+	sc.updateOffsetX(windowWidth)
+	sc.updateOffsetY(windowHeight)
+	log.Println(sc.ed.Y)
+
 	cursorPosX := 0
-	for y, line := range sc.ed.Text {
+	posY := 0
+	for y := sc.offsetY; y < windowHeight && y < len(sc.ed.Text); y++ {
 		posX := 0
-		for x, r := range line {
-			termbox.SetCell(posX, y, r, color, color)
+		for x := sc.offsetX; x < windowWidth && x < len(sc.ed.Text[y]); x++ {
+			r := sc.ed.Text[y][x]
+			termbox.SetCell(posX, posY, r, color, color)
 			width := runewidth.RuneWidth(r)
 			posX += width
 			if sc.ed.Y == y && sc.ed.X > x {
 				cursorPosX += width
 			}
 		}
+		posY++
 	}
+
+	//for y, line := range sc.ed.Text {
+	//	posX := 0
+	//	for x, r := range line {
+	//		termbox.SetCell(posX, y, r, color, color)
+	//		width := runewidth.RuneWidth(r)
+	//		posX += width
+	//		if sc.ed.Y == y && sc.ed.X > x {
+	//			cursorPosX += width
+	//		}
+	//	}
+	//}
 
 	termbox.SetCursor(cursorPosX, sc.ed.Y)
 
 	termbox.Flush()
+}
+
+func (sc *Screen) updateOffsetX(width int) {
+	if sc.ed.X > width {
+		sc.offsetX = sc.ed.X - width
+	}
+}
+
+func (sc *Screen) updateOffsetY(height int) {
+	if sc.ed.Y > height {
+		sc.offsetY = sc.ed.Y - height
+	}
 }
 
 func main() {
