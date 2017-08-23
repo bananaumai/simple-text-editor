@@ -188,7 +188,6 @@ func (ed *Editor) removeLine(lineOffset int) {
 }
 
 type Screen struct {
-	ed          *Editor
 	prevEditorX int
 	prevEditorY int
 	offsetX     int
@@ -197,26 +196,24 @@ type Screen struct {
 	cursorY     int
 }
 
-func NewScreen(ed *Editor) *Screen {
-	return &Screen{
-		ed: ed,
-	}
+func NewScreen() *Screen {
+	return &Screen{}
 }
 
-func (sc *Screen) Draw() {
+func (sc *Screen) Draw(ed *Editor) {
 	const color = termbox.ColorDefault
 
 	termbox.Clear(color, color)
 
 	windowWidth, windowHeight := termbox.Size()
 
-	sc.updateOffsetX(windowWidth)
-	sc.updateOffsetY(windowHeight)
+	sc.updateOffsetX(windowWidth, ed)
+	sc.updateOffsetY(windowHeight, ed)
 
 	sc.cursorX = 0
-	sc.cursorY = sc.ed.Y - sc.offsetY
+	sc.cursorY = ed.Y - sc.offsetY
 
-	text := sc.ed.Text[sc.offsetY:]
+	text := ed.Text[sc.offsetY:]
 	if len(text) > windowHeight {
 		text = text[:windowHeight]
 	}
@@ -242,29 +239,29 @@ func (sc *Screen) Draw() {
 		}
 	}
 
-	sc.prevEditorX = sc.ed.X
-	sc.prevEditorY = sc.ed.Y
+	sc.prevEditorX = ed.X
+	sc.prevEditorY = ed.Y
 
 	termbox.SetCursor(sc.cursorX, sc.cursorY)
 
 	termbox.Flush()
 }
 
-func (sc *Screen) updateOffsetX(width int) {
-	if sc.offsetX <= sc.ed.X && sc.ed.X <= width {
+func (sc *Screen) updateOffsetX(width int, ed *Editor) {
+	if sc.offsetX <= ed.X && ed.X <= width {
 		return
 	}
-	sc.offsetX = sc.ed.X - width
+	sc.offsetX = ed.X - width
 }
 
-func (sc *Screen) updateOffsetY(height int) {
-	if sc.offsetY <= sc.ed.Y && sc.ed.Y < height {
+func (sc *Screen) updateOffsetY(height int, ed *Editor) {
+	if sc.offsetY <= ed.Y && ed.Y < height {
 		return
 	}
-	if sc.ed.Y > sc.prevEditorY && sc.ed.Y >= height {
-		sc.offsetY = sc.ed.Y + 1 - height
+	if ed.Y > sc.prevEditorY && ed.Y >= height {
+		sc.offsetY = ed.Y + 1 - height
 	}
-	if sc.ed.Y < sc.prevEditorY && sc.ed.Y < sc.offsetY {
+	if ed.Y < sc.prevEditorY && ed.Y < sc.offsetY {
 		sc.offsetY--
 	}
 }
@@ -280,7 +277,7 @@ func main() {
 	termbox.Clear(color, color)
 
 	ed := NewEditor()
-	sc := NewScreen(ed)
+	sc := NewScreen()
 
 mainloop:
 	for {
@@ -320,6 +317,6 @@ mainloop:
 				ed.AddRune(ev.Ch)
 			}
 		}
-		sc.Draw()
+		sc.Draw(ed)
 	}
 }
