@@ -220,7 +220,7 @@ func (sc *Screen) Draw(ed *Editor) {
 
 	for y, line := range text {
 
-		if len(line) <= sc.offsetX {
+		if len(line) < sc.offsetX {
 			break
 		}
 		line = line[sc.offsetX:]
@@ -317,6 +317,7 @@ mainloop:
 				ed.AddRune(ev.Ch)
 			}
 		}
+
 		sc.Draw(ed)
 	}
 }
