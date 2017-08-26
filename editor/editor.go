@@ -1,9 +1,10 @@
 package editor
 
 type Editor struct {
-	Text [][]rune
-	X    int
-	Y    int
+	Text           [][]rune
+	X              int
+	Y              int
+	eventListeners map[EditorEvent][]EventListener
 }
 
 func NewEditor() *Editor {
@@ -11,6 +12,17 @@ func NewEditor() *Editor {
 		[][]rune{{}},
 		0,
 		0,
+		map[EditorEvent][]EventListener{},
+	}
+}
+
+func (ed *Editor) AddEventListener(event EditorEvent, listener EventListener) {
+	if listeners, ok := ed.eventListeners[event]; ok {
+		if len(listeners) != 0 {
+			ed.eventListeners[event] = append(listeners, listener)
+		} else {
+			ed.eventListeners[event] = []EventListener{listener}
+		}
 	}
 }
 
