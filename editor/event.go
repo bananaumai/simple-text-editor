@@ -12,4 +12,4 @@ const (
 	EditorEventMoveDown EditorEvent = evMoveDown
 )
 
-type EventListener func(v interface{})
+type EventListener func(ed *Editor)

@@ -7,34 +7,110 @@ import (
 )
 
 type Screen struct {
-	prevEditorX int
-	prevEditorY int
-	offsetX     int
-	offsetY     int
-	cursorX     int
-	cursorY     int
+	ed      *editor.Editor
+	color   termbox.Attribute
+	offsetX int
+	offsetY int
+	cursorX int
+	cursorY int
+	width   int
+	height  int
 }
 
-func NewScreen() *Screen {
-	return &Screen{}
+func NewScreen(ed *editor.Editor) *Screen {
+	sc := &Screen{}
+
+	ed.AddEventListener(editor.EditorEventMoveUp, sc.decrementOffsetY)
+	ed.AddEventListener(editor.EditorEventMoveDown, sc.incrementOffsetY)
+	sc.ed = ed
+
+	sc.color = termbox.ColorDefault
+	termbox.Clear(sc.color, sc.color)
+
+	err := termbox.Init()
+	if err != nil {
+		panic(err)
+	}
+
+	sc.width, sc.height = termbox.Size()
+
+	return sc
 }
 
-func (sc *Screen) Draw(ed *editor.Editor) {
-	const color = termbox.ColorDefault
+func (sc *Screen) incrementOffsetY(ed *editor.Editor) {
+	if ed.Y >= sc.height {
+		sc.offsetY++
+	}
+}
 
-	termbox.Clear(color, color)
+func (sc *Screen) decrementOffsetY(ed *editor.Editor) {
+	if ed.Y < sc.offsetY {
+		sc.offsetY--
+	}
+}
 
-	windowWidth, windowHeight := termbox.Size()
+func (sc *Screen) Run() {
 
-	sc.updateOffsetX(windowWidth, ed)
-	sc.updateOffsetY(windowHeight, ed)
+	defer termbox.Close()
+
+mainloop:
+	for {
+		ev := termbox.PollEvent()
+
+		if ev.Type == termbox.EventResize {
+			sc.width, sc.height = termbox.Size()
+			sc.Draw()
+			continue
+		}
+
+		if ev.Type != termbox.EventKey {
+			continue
+		}
+
+		switch ev.Key {
+		case termbox.KeyEsc:
+			break mainloop
+		case termbox.KeyEnter:
+			sc.ed.AddLine()
+		case termbox.KeyArrowLeft, termbox.KeyCtrlB:
+			sc.ed.MoveLeft()
+		case termbox.KeyArrowRight, termbox.KeyCtrlF:
+			sc.ed.MoveRight()
+		case termbox.KeyArrowUp, termbox.KeyCtrlP:
+			sc.ed.MoveUp()
+		case termbox.KeyArrowDown, termbox.KeyCtrlN:
+			sc.ed.MoveDown()
+		case termbox.KeyCtrlA:
+			sc.ed.GoToLineStart()
+		case termbox.KeyCtrlE:
+			sc.ed.GoToLineEnd()
+		case termbox.KeyBackspace, termbox.KeyBackspace2:
+			sc.ed.RemoveBackwardRune()
+		case termbox.KeyDelete, termbox.KeyCtrlD:
+			sc.ed.RemoveForwardRune()
+		case termbox.KeySpace:
+			sc.ed.AddRune(' ')
+		case termbox.KeyTab:
+			sc.ed.AddRune('\t')
+		default:
+			if ev.Ch != 0 {
+				sc.ed.AddRune(ev.Ch)
+			}
+		}
+
+		sc.Draw()
+	}
+}
+
+func (sc *Screen) Draw() {
+	termbox.Clear(sc.color, sc.color)
 
 	sc.cursorX = 0
-	sc.cursorY = ed.Y - sc.offsetY
+	sc.cursorY = sc.ed.Y - sc.offsetY
 
-	text := ed.Text[sc.offsetY:]
-	if len(text) > windowHeight {
-		text = text[:windowHeight]
+	text := sc.ed.Text[sc.offsetY:]
+	if len(text) > sc.height {
+		text = text[:sc.height]
 	}
 
 	for y, line := range text {
@@ -43,44 +119,22 @@ func (sc *Screen) Draw(ed *editor.Editor) {
 			break
 		}
 		line = line[sc.offsetX:]
-		if len(line) > windowWidth {
-			line = line[:windowWidth]
+		if len(line) > sc.width {
+			line = line[:sc.width]
 		}
 
 		x := 0
-		for _, r := range line {
-			termbox.SetCell(x, y, r, color, color)
+		for i, r := range line {
+			termbox.SetCell(x, y, r, sc.color, sc.color)
 			width := runewidth.RuneWidth(r)
-			x += width
-			if sc.cursorY == y {
+			if sc.cursorY == y && sc.ed.X > i {
 				sc.cursorX += width
 			}
+			x += width
 		}
 	}
-
-	sc.prevEditorX = ed.X
-	sc.prevEditorY = ed.Y
 
 	termbox.SetCursor(sc.cursorX, sc.cursorY)
 
 	termbox.Flush()
-}
-
-func (sc *Screen) updateOffsetX(width int, ed *editor.Editor) {
-	if sc.offsetX <= ed.X && ed.X <= width {
-		return
-	}
-	sc.offsetX = ed.X - width
-}
-
-func (sc *Screen) updateOffsetY(height int, ed *editor.Editor) {
-	if sc.offsetY <= ed.Y && ed.Y < height {
-		return
-	}
-	if ed.Y > sc.prevEditorY && ed.Y >= height {
-		sc.offsetY = ed.Y + 1 - height
-	}
-	if ed.Y < sc.prevEditorY && ed.Y < sc.offsetY {
-		sc.offsetY--
-	}
 }

@@ -18,10 +18,16 @@ func NewEditor() *Editor {
 
 func (ed *Editor) AddEventListener(event EditorEvent, listener EventListener) {
 	if listeners, ok := ed.eventListeners[event]; ok {
-		if len(listeners) != 0 {
-			ed.eventListeners[event] = append(listeners, listener)
-		} else {
-			ed.eventListeners[event] = []EventListener{listener}
+		ed.eventListeners[event] = append(listeners, listener)
+	} else {
+		ed.eventListeners[event] = []EventListener{listener}
+	}
+}
+
+func (ed *Editor) dispatchEvent(event EditorEvent) {
+	if listeners, ok := ed.eventListeners[event]; ok {
+		for _, listener := range listeners {
+			listener(ed)
 		}
 	}
 }
@@ -49,6 +55,8 @@ func (ed *Editor) MoveUp() {
 	if len(ed.Text[ed.Y])-1 < ed.X {
 		ed.X = len(ed.Text[ed.Y])
 	}
+
+	ed.dispatchEvent(EditorEventMoveUp)
 }
 
 func (ed *Editor) MoveDown() {
@@ -60,6 +68,8 @@ func (ed *Editor) MoveDown() {
 	if len(ed.Text[ed.Y])-1 < ed.X {
 		ed.X = len(ed.Text[ed.Y])
 	}
+
+	ed.dispatchEvent(EditorEventMoveDown)
 }
 
 func (ed *Editor) GoToLineStart() {
@@ -90,6 +100,8 @@ func (ed *Editor) AddLine() {
 
 	ed.X = 0
 	ed.Y++
+
+	ed.dispatchEvent(EditorEventMoveDown)
 }
 
 func (ed *Editor) AddRune(r rune) {
@@ -133,6 +145,8 @@ func (ed *Editor) RemoveBackwardRune() {
 		ed.X = prevLineLen
 		ed.removeLine(ed.Y)
 		ed.Y--
+
+		ed.dispatchEvent(EditorEventMoveDown)
 
 		return
 	}
