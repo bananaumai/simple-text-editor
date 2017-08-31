@@ -20,8 +20,8 @@ type Screen struct {
 func NewScreen(ed *editor.Editor) *Screen {
 	sc := &Screen{}
 
-	ed.AddEventListener(editor.EditorEventMoveUp, sc.decrementOffsetY)
-	ed.AddEventListener(editor.EditorEventMoveDown, sc.incrementOffsetY)
+	ed.AddEventListener(editor.EditorEventMoveUp, sc.decreaseOffsetY)
+	ed.AddEventListener(editor.EditorEventMoveDown, sc.increaseOffsetY)
 	sc.ed = ed
 
 	sc.color = termbox.ColorDefault
@@ -37,13 +37,13 @@ func NewScreen(ed *editor.Editor) *Screen {
 	return sc
 }
 
-func (sc *Screen) incrementOffsetY(ed *editor.Editor) {
-	if ed.Y >= sc.height {
-		sc.offsetY++
+func (sc *Screen) increaseOffsetY(ed *editor.Editor) {
+	if ed.Y-sc.offsetY >= sc.height {
+		sc.offsetY = ed.Y - sc.height + 1
 	}
 }
 
-func (sc *Screen) decrementOffsetY(ed *editor.Editor) {
+func (sc *Screen) decreaseOffsetY(ed *editor.Editor) {
 	if ed.Y < sc.offsetY {
 		sc.offsetY--
 	}

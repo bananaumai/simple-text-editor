@@ -146,7 +146,7 @@ func (ed *Editor) RemoveBackwardRune() {
 		ed.removeLine(ed.Y)
 		ed.Y--
 
-		ed.dispatchEvent(EditorEventMoveDown)
+		ed.dispatchEvent(EditorEventMoveUp)
 
 		return
 	}
