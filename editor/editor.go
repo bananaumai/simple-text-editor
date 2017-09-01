@@ -37,6 +37,7 @@ func (ed *Editor) MoveLeft() {
 		return
 	}
 	ed.X--
+	ed.dispatchEvent(EditorEventMoveLeft)
 }
 
 func (ed *Editor) MoveRight() {
@@ -44,6 +45,7 @@ func (ed *Editor) MoveRight() {
 		return
 	}
 	ed.X++
+	ed.dispatchEvent(EditorEventMoveRight)
 }
 
 func (ed *Editor) MoveUp() {
@@ -54,6 +56,7 @@ func (ed *Editor) MoveUp() {
 	ed.Y--
 	if len(ed.Text[ed.Y])-1 < ed.X {
 		ed.X = len(ed.Text[ed.Y])
+		ed.dispatchEvent(EditorEventMoveLeft)
 	}
 
 	ed.dispatchEvent(EditorEventMoveUp)
@@ -67,17 +70,19 @@ func (ed *Editor) MoveDown() {
 	ed.Y++
 	if len(ed.Text[ed.Y])-1 < ed.X {
 		ed.X = len(ed.Text[ed.Y])
+		ed.dispatchEvent(EditorEventMoveLeft)
 	}
-
 	ed.dispatchEvent(EditorEventMoveDown)
 }
 
 func (ed *Editor) GoToLineStart() {
 	ed.X = 0
+	ed.dispatchEvent(EditorEventMoveLeft)
 }
 
 func (ed *Editor) GoToLineEnd() {
 	ed.X = len(ed.Text[ed.Y])
+	ed.dispatchEvent(EditorEventMoveRight)
 }
 
 func (ed *Editor) AddLine() {
@@ -98,31 +103,37 @@ func (ed *Editor) AddLine() {
 	copy(newText[ed.Y+2:], tailLines)
 	ed.Text = newText
 
-	ed.X = 0
-	ed.Y++
+	if ed.X != 0 {
+		ed.X = 0
+		ed.dispatchEvent(EditorEventMoveLeft)
+	}
 
+	ed.Y++
 	ed.dispatchEvent(EditorEventMoveDown)
 }
 
 func (ed *Editor) AddRune(r rune) {
 
 	if len(ed.Text[ed.Y]) == ed.X {
+		// case when adds new rune at the end of a line
 		ed.Text[ed.Y] = append(ed.Text[ed.Y], r)
 		ed.X++
-		return
+	} else {
+		// case when adds new rune in the middle of a line
+		newLine := make([]rune, len(ed.Text[ed.Y])+1)
+		head := ed.Text[ed.Y][:ed.X]
+		tail := ed.Text[ed.Y][ed.X:]
+
+		copy(newLine[:ed.X], head)
+		newLine[ed.X] = r
+		copy(newLine[ed.X+1:], tail)
+
+		ed.Text[ed.Y] = newLine
+		ed.X++
 	}
 
-	newLine := make([]rune, len(ed.Text[ed.Y])+1)
-	head := ed.Text[ed.Y][:ed.X]
-	tail := ed.Text[ed.Y][ed.X:]
+	ed.dispatchEvent(EditorEventMoveRight)
 
-	copy(newLine[:ed.X], head)
-	newLine[ed.X] = r
-	copy(newLine[ed.X+1:], tail)
-
-	ed.Text[ed.Y] = newLine
-
-	ed.MoveRight()
 }
 
 func (ed *Editor) RemoveBackwardRune() {
@@ -143,6 +154,10 @@ func (ed *Editor) RemoveBackwardRune() {
 		ed.Text[ed.Y-1] = newLine
 
 		ed.X = prevLineLen
+		if prevLineLen != 0 {
+			ed.dispatchEvent(EditorEventMoveRight)
+		}
+
 		ed.removeLine(ed.Y)
 		ed.Y--
 
@@ -152,6 +167,7 @@ func (ed *Editor) RemoveBackwardRune() {
 	}
 
 	ed.X--
+	ed.dispatchEvent(EditorEventMoveLeft)
 
 	newLine := make([]rune, len(ed.Text[ed.Y])-1)
 	head := ed.Text[ed.Y][:ed.X+1]
