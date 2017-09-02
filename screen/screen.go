@@ -22,6 +22,8 @@ func NewScreen(ed *editor.Editor) *Screen {
 
 	ed.AddEventListener(editor.EditorEventMoveUp, sc.decreaseOffsetY)
 	ed.AddEventListener(editor.EditorEventMoveDown, sc.increaseOffsetY)
+	ed.AddEventListener(editor.EditorEventMoveLeft, sc.decreaseOffsetX)
+	ed.AddEventListener(editor.EditorEventMoveRight, sc.increaseOffsetX)
 	sc.ed = ed
 
 	sc.color = termbox.ColorDefault
@@ -46,6 +48,19 @@ func (sc *Screen) increaseOffsetY(ed *editor.Editor) {
 func (sc *Screen) decreaseOffsetY(ed *editor.Editor) {
 	if ed.Y < sc.offsetY {
 		sc.offsetY--
+	}
+}
+
+func (sc *Screen) increaseOffsetX(ed *editor.Editor) {
+	const rightBuffer = 1
+	if ed.X-sc.offsetX >= sc.width-rightBuffer {
+		sc.offsetX = ed.X - sc.width + 1
+	}
+}
+
+func (sc *Screen) decreaseOffsetX(ed *editor.Editor) {
+	if ed.X < sc.offsetX {
+		sc.offsetX--
 	}
 }
 
@@ -127,7 +142,7 @@ func (sc *Screen) Draw() {
 		for i, r := range line {
 			termbox.SetCell(x, y, r, sc.color, sc.color)
 			width := runewidth.RuneWidth(r)
-			if sc.cursorY == y && sc.ed.X > i {
+			if sc.cursorY == y && sc.ed.X-sc.offsetX > i {
 				sc.cursorX += width
 			}
 			x += width
